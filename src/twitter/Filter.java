@@ -3,9 +3,8 @@
  */
 package twitter;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Filter consists of methods that filter a list of tweets for those matching a
@@ -30,12 +29,13 @@ public class Filter {
      */
     public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
         List<Tweet> result = new ArrayList<>();
+        
         for (Tweet tweet : tweets) {
-            String author = tweet.getAuthor();
-            if (author.equalsIgnoreCase(username)) {
+            if (tweet.getAuthor().equals(username)) {
                 result.add(tweet);
             }
         }
+        
         return result;
     }
 
@@ -50,18 +50,17 @@ public class Filter {
      *         in the same order as in the input list.
      */
     public static List<Tweet> inTimespan(List<Tweet> tweets, Timespan timespan) {
-        Instant start = timespan.getStart(), end = timespan.getEnd();
-
         List<Tweet> result = new ArrayList<>();
+        
         for (Tweet tweet : tweets) {
-            Instant timestamp = tweet.getTimestamp();
-            if (timestamp.compareTo(start) >= 0 && timestamp.compareTo(end) <= 0) {
+            if (!tweet.getTimestamp().isBefore(timespan.getStart()) &&
+                !tweet.getTimestamp().isAfter(timespan.getEnd())) {
                 result.add(tweet);
             }
         }
+        
         return result;
     }
-
     /**
      * Find tweets that contain certain words.
      * 
@@ -79,32 +78,24 @@ public class Filter {
      */
     public static List<Tweet> containing(List<Tweet> tweets, List<String> words) {
         List<Tweet> result = new ArrayList<>();
+        List<String> lowerCaseWords = new ArrayList<>();
+        
+        // Convert words to lower case for case-insensitive comparison
+        for (String word : words) {
+            lowerCaseWords.add(word.toLowerCase());
+        }
+        
         for (Tweet tweet : tweets) {
-            String text = tweet.getText();
-            for (String word : text.split("\\s")) {
-                if (containsIgnoreCase(words, word)) {
+            String tweetText = tweet.getText().toLowerCase();
+            for (String word : lowerCaseWords) {
+                if (tweetText.contains(word)) {
                     result.add(tweet);
-                    break;
+                    break; // Stop after finding the first match
                 }
             }
         }
+        
         return result;
-    }
-
-    /**
-     * @param words
-     *            a list of strings, not modified by this method.
-     * @param str
-     *            a string to be looked for.
-     * @return words contains str, ignoring cases.
-     */
-    private static boolean containsIgnoreCase(List<String> words, String str) {
-        for (String word : words) {
-            if (word.equalsIgnoreCase(str)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

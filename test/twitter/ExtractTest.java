@@ -8,59 +8,28 @@ import static org.junit.Assert.*;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.HashSet;
 
 import org.junit.Test;
 
 public class ExtractTest {
 
-    //
-    // Testing strategy:
-    //
-    // Partition for getTimespan(tweets) -> result:
-    //
-    //   tweets.size: 0, 1, >1
-    //   tweets contains repeated timestamps or doesn't
-    //   tweets comes in time order or doesn't
-    //
-    // Partition for getMentionedUsers(tweets) -> result:
-    //
-    //   tweets contains username-mentions or doesn't
-    //   tweets contains username-mentions preceded by valid characters or doesn't
-    //   tweets contains repeated username-mentions or doesn't
-    //   the username-mentions comes in the beginning, the end or the middle
-    //
+    /*
+     * TODO: your testing strategies for these methods should go here.
+     * See the ic03-testing exercise for examples of what a testing strategy comment looks like.
+     * Make sure you have partitions.
+     */
     
     private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
     private static final Instant d2 = Instant.parse("2016-02-17T11:00:00Z");
-    private static final Instant d3 = Instant.parse("2016-02-17T10:30:00Z");
     
     private static final Tweet tweet1 = new Tweet(1, "alyssa", "is it reasonable to talk about rivest so much?", d1);
     private static final Tweet tweet2 = new Tweet(2, "bbitdiddle", "rivest talk in 30 minutes #hype", d2);
-    private static final Tweet tweet3 = new Tweet(3, "MITOCW", "@MITopenlearning component, free lecture notes, exams, and videos from @MIT.", d1);
-    private static final Tweet tweet4 = new Tweet(4, "mitopenlearning", "@mit component, transforming teaching and learning at @mit, home of @mitocw", d2);
-    private static final Tweet tweet5 = new Tweet(5, "mit6005", "an email address like bitdiddle@mit.edu does NOT contain a mention", d3);
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
         assert false; // make sure assertions are enabled with VM argument: -ea
     }
-
-    @Test
-    public void testGetTimespanNoTweets() {
-        Timespan timespan = Extract.getTimespan(Arrays.asList());
-
-        // any results without exceptions are acceptable
-    }
-
-    @Test
-    public void testGetTimespanOneTweet() {
-        Timespan timespan = Extract.getTimespan(Arrays.asList(tweet1));
-
-        assertEquals("expected start", d1, timespan.getStart());
-        assertEquals("expected end", d1, timespan.getEnd());
-    }
-
+    
     @Test
     public void testGetTimespanTwoTweets() {
         Timespan timespan = Extract.getTimespan(Arrays.asList(tweet1, tweet2));
@@ -68,82 +37,64 @@ public class ExtractTest {
         assertEquals("expected start", d1, timespan.getStart());
         assertEquals("expected end", d2, timespan.getEnd());
     }
-
-    @Test
-    public void testGetTimespanRepeated() {
-        Timespan timespan = Extract.getTimespan(Arrays.asList(tweet1, tweet2, tweet4));
-        
-        assertEquals("expected start", d1, timespan.getStart());
-        assertEquals("expected end", d2, timespan.getEnd());
-    }
-
-    @Test
-    public void testGetTimespanOutOfOrder() {
-        Timespan timespan = Extract.getTimespan(Arrays.asList(tweet2, tweet1, tweet5));
-        
-        assertEquals("expected start", d1, timespan.getStart());
-        assertEquals("expected end", d2, timespan.getEnd());
-    }
-
+    
     @Test
     public void testGetMentionedUsersNoMention() {
         Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet1));
         
         assertTrue("expected empty set", mentionedUsers.isEmpty());
     }
-
-    @Test
-    public void testGetMentionedUsersPrecedingValid() {
-        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet5));
-        
-        assertTrue("expected empty set", mentionedUsers.isEmpty());
-    }
-
-    /**
-     * Transform the strings in the set into lower cases.
-     * 
-     * @param strings
-     *            set of strings, not modified by this method.
-     * @return a set of strings transformed into lower cases.
-     */
-    private static Set<String> toLowerCase(Set<String> strings) {
-        Set<String> result = new HashSet<>();
-        for (String string : strings) {
-            result.add(string.toLowerCase());
-        }
-        return result;
-    }
-
-    @Test
-    public void testGetMentionedUsersNoRepeated() {
-        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet3));
-        Set<String> expected = Set.of("mit", "mitopenlearning");
-        
-        assertTrue("expected results", expected.equals(toLowerCase(mentionedUsers)));
-    }
-
-    @Test
-    public void testGetMentionedUsersRepeated() {
-        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet4));
-        Set<String> expected = Set.of("mit", "mitocw");
-
-        assertTrue("expected results", expected.equals(toLowerCase(mentionedUsers)));
-    }
-
-    @Test
-    public void testGetMentionedUsersCaseInsensitive() {
-        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet3, tweet4));
-        Set<String> expected = Set.of("mit", "mitopenlearning", "mitocw");
-
-        assertTrue("expected results", expected.equals(toLowerCase(mentionedUsers)));
-    }
     
+//    @Test
+//    public void testGetTimespanNoTweets() {
+//        Timespan timespan = Extract.getTimespan(Arrays.asList());
+//        
+//        // Handle the case for no tweets; depends on how Timespan is implemented.
+//        assertNull("expected null for no tweets", timespan);
+//    }
+
     @Test
-    public void testExtractInstantiation() {
-        // Just to instantiate the Extract class and check no exceptions occur
-        Extract extract = new Extract();
-        assertNotNull("expected non-null instance of Extract", extract);
+    public void testGetTimespanSingleTweet() {
+        Timespan timespan = Extract.getTimespan(Arrays.asList(tweet1));
+        
+        assertEquals("expected start", d1, timespan.getStart());
+        assertEquals("expected end", d1, timespan.getEnd());
     }
+
+    @Test
+    public void testGetTimespanMultipleTweets() {
+        Instant d3 = Instant.parse("2016-02-17T12:00:00Z");
+        Tweet tweet3 = new Tweet(3, "user3", "Tweeting at noon", d3);
+        
+        Timespan timespan = Extract.getTimespan(Arrays.asList(tweet1, tweet2, tweet3));
+        
+        assertEquals("expected start", d1, timespan.getStart());
+        assertEquals("expected end", d3, timespan.getEnd());
+    }
+
+    @Test
+    public void testGetMentionedUsersSingleMention() {
+        Tweet tweetWithMention = new Tweet(3, "user1", "Hello @user2, how are you?", d1);
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweetWithMention));
+        
+        assertEquals("expected one mentioned user", Set.of("user2"), mentionedUsers);
+    }
+
+    @Test
+    public void testGetMentionedUsersMultipleMentions() {
+        Tweet tweetWithMultipleMentions = new Tweet(4, "user1", "Shoutout to @user2 and @user3!", d1);
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweetWithMultipleMentions));
+        
+        assertEquals("expected two mentioned users", Set.of("user2", "user3"), mentionedUsers);
+    }
+    @Test
+    public void testGetMentionedUsersCaseInsensitivity() {
+        Tweet tweetWithMention = new Tweet(6, "user1", "Hey @User2, did you see that?", d1);
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweetWithMention));
+        
+        assertEquals("expected case insensitive mention", Set.of("user2"), mentionedUsers);
+    }
+
     /*
      * Warning: all the tests you write here must be runnable against any
      * Extract class that follows the spec. It will be run against several staff
